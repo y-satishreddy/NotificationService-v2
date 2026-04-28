@@ -1,5 +1,6 @@
 package com.skylimit.Skylimit.service;
 
+import com.skylimit.Skylimit.client.NotificationClient;
 import com.skylimit.Skylimit.dto.notification.NotificationRequest;
 import com.skylimit.Skylimit.dto.notification.NotificationResponse;
 import com.skylimit.Skylimit.dto.product.*;
@@ -19,11 +20,14 @@ public class ProductServiceImpl implements ProductService {
     private final RestClient restClient;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final NotificationClient notificationClient;
 
-    public ProductServiceImpl(RestClient builder, ProductRepository productRepository, ProductMapper productMapper) {
+    public ProductServiceImpl(RestClient builder, ProductRepository productRepository, ProductMapper productMapper,
+            NotificationClient notificationClient) {
         this.restClient = builder;
         this.productRepository = productRepository;
         this.productMapper = productMapper;
+        this.notificationClient = notificationClient;
     }
 
     public ProductAddProductResponseDTO saveProduct(ProductAddProductRequestDTO productDTO) {
@@ -31,11 +35,15 @@ public class ProductServiceImpl implements ProductService {
         Product repoProduct = productRepository.save(productMapper.toEntity(productDTO));
         log.info("Product saved successfully");
         log.info("Notifcation service is calling");
-        NotificationRequest notificationRequest=new NotificationRequest(repoProduct.getId(), "ADD_PRODUCT", "Product added successfully");
-        NotificationResponse notificationResponse=restClient.post().uri("http://localhost:8080/notifications")
-                .header("correlationId", "AddProduct").body(notificationRequest).retrieve()
-                .body(NotificationResponse.class);
-        log.info("{}",notificationResponse);
+        NotificationRequest notificationRequest = new NotificationRequest(repoProduct.getId(), "ADD_PRODUCT",
+                "Product added successfully");
+        // NotificationResponse notificationResponse =
+        // restClient.post().uri("http://localhost:8080/notifications")
+        // .header("correlationId", "AddProduct").body(notificationRequest).retrieve()
+        // .body(NotificationResponse.class);
+        NotificationResponse notificationResponse = notificationClient.handleNotification("AddProduct",
+                notificationRequest);
+        log.info("{}", notificationResponse);
         return productMapper.toAddResponse(repoProduct);
     }
 
@@ -47,10 +55,13 @@ public class ProductServiceImpl implements ProductService {
         log.info("Notifcation Service is calling");
         NotificationRequest notificationRequest = new NotificationRequest(id, "GET_PRODUCT",
                 "Product fetched successfully");
-        NotificationResponse notificationResponse = restClient.post().uri("http://localhost:8080/notifications")
-                .header("correlationId", "GetProduct").body(notificationRequest).retrieve()
-                .body(NotificationResponse.class);
-        log.info("{}",notificationResponse);
+        // NotificationResponse notificationResponse =
+        // restClient.post().uri("http://localhost:8080/notifications")
+        // .header("correlationId", "GetProduct").body(notificationRequest).retrieve()
+        // .body(NotificationResponse.class);
+        NotificationResponse notificationResponse = notificationClient.handleNotification("GetProduct",
+                notificationRequest);
+        log.info("{}", notificationResponse);
         return productMapper.toGetDetailsResponse(repoProduct);
     }
 
@@ -106,9 +117,13 @@ public class ProductServiceImpl implements ProductService {
         log.info("Notification Service is calling for product partial update");
         NotificationRequest notificationRequest = new NotificationRequest(id, "PARTIAL_UPDATE",
                 "Product partial update is completed");
-        NotificationResponse notificationResponse = restClient.post().uri("http://localhost:8080/notifications")
-                .header("correlationId", "PartialProductUpdate").body(notificationRequest).retrieve()
-                .body(NotificationResponse.class);
+        // NotificationResponse notificationResponse =
+        // restClient.post().uri("http://localhost:8080/notifications")
+        // .header("correlationId",
+        // "PartialProductUpdate").body(notificationRequest).retrieve()
+        // .body(NotificationResponse.class);
+        NotificationResponse notificationResponse = notificationClient.handleNotification("PartialProductUpdate",
+                notificationRequest);
         log.info("{}", notificationResponse);
         return productMapper.toGetDetailsResponse(updatedProduct);
     }
@@ -133,9 +148,13 @@ public class ProductServiceImpl implements ProductService {
         log.info("Notification API is called");
         NotificationRequest notificationRequest = new NotificationRequest(id, "RODUCT_UPDATE",
                 "Product updated succesfully");
-        NotificationResponse notificationResponse = restClient.post().uri("http://localhost:8080/notifications")
-                .header("correlationId", "Update").body(notificationRequest).retrieve()
-                .body(NotificationResponse.class);
+        // NotificationResponse notificationResponse =
+        // restClient.post().uri("http://localhost:8080/notifications")
+        // .header("correlationId", "Update").body(notificationRequest).retrieve()
+        // .body(NotificationResponse.class);
+
+        NotificationResponse notificationResponse = notificationClient.handleNotification("UpdateProduct",
+                notificationRequest);
         log.info("{}", notificationResponse);
         return productMapper.toGetDetailsResponse(response);
     }
@@ -149,9 +168,12 @@ public class ProductServiceImpl implements ProductService {
         log.info("Notification API is called");
         NotificationRequest notificationRequest = new NotificationRequest(id, "DELETE_PRODUCT",
                 "Product deleted successfully");
-        NotificationResponse notificationResponse = restClient.post().uri("http://localhost:8080/notifications")
-                .header("correlationId", "Delete").body(notificationRequest).retrieve()
-                .body(NotificationResponse.class);
+        // NotificationResponse notificationResponse = restClient.post().uri("http://localhost:8080/notifications")
+        //         .header("correlationId", "Delete").body(notificationRequest).retrieve()
+        //         .body(NotificationResponse.class);
+        
+        NotificationResponse notificationResponse = notificationClient.handleNotification("DeleteProduct",
+                notificationRequest);
         log.info("{}", notificationResponse.toString());
         return productMapper.toGetDetailsResponse(product);
     }
