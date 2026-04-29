@@ -3,6 +3,7 @@ package com.skylimit.Skylimit.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class RestConfig {
@@ -12,4 +13,8 @@ public class RestConfig {
         return RestClient.builder().build();
     }
 
+    @Bean
+    public WebClient webCilent(){
+        return WebClient.builder().build();
+    }
 }

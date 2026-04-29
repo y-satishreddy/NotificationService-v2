@@ -11,23 +11,32 @@ import com.skylimit.Skylimit.repository.ProductRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @Slf4j
 public class ProductServiceImpl implements ProductService {
+
+    @Value("${notification.base-url}")
+    private String baseUrl;
+    
     private final RestClient restClient;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final NotificationClient notificationClient;
+    private final WebClient webClient;
 
-    public ProductServiceImpl(RestClient builder, ProductRepository productRepository, ProductMapper productMapper,
+    public ProductServiceImpl(WebClient webClient, RestClient builder, ProductRepository productRepository,
+            ProductMapper productMapper,
             NotificationClient notificationClient) {
         this.restClient = builder;
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.notificationClient = notificationClient;
+        this.webClient = webClient;
     }
 
     public ProductAddProductResponseDTO saveProduct(ProductAddProductRequestDTO productDTO) {
@@ -41,8 +50,12 @@ public class ProductServiceImpl implements ProductService {
         // restClient.post().uri("http://localhost:8080/notifications")
         // .header("correlationId", "AddProduct").body(notificationRequest).retrieve()
         // .body(NotificationResponse.class);
-        NotificationResponse notificationResponse = notificationClient.handleNotification("AddProduct",
-                notificationRequest);
+        // NotificationResponse notificationResponse =
+        // notificationClient.handleNotification("AddProduct",
+        // notificationRequest);
+        NotificationResponse notificationResponse = webClient.post().uri(baseUrl)
+                .header("correlationId", "AddProduct").bodyValue(notificationRequest).retrieve()
+                .bodyToMono(NotificationResponse.class).block();
         log.info("{}", notificationResponse);
         return productMapper.toAddResponse(repoProduct);
     }
@@ -168,10 +181,11 @@ public class ProductServiceImpl implements ProductService {
         log.info("Notification API is called");
         NotificationRequest notificationRequest = new NotificationRequest(id, "DELETE_PRODUCT",
                 "Product deleted successfully");
-        // NotificationResponse notificationResponse = restClient.post().uri("http://localhost:8080/notifications")
-        //         .header("correlationId", "Delete").body(notificationRequest).retrieve()
-        //         .body(NotificationResponse.class);
-        
+        // NotificationResponse notificationResponse =
+        // restClient.post().uri("http://localhost:8080/notifications")
+        // .header("correlationId", "Delete").body(notificationRequest).retrieve()
+        // .body(NotificationResponse.class);
+
         NotificationResponse notificationResponse = notificationClient.handleNotification("DeleteProduct",
                 notificationRequest);
         log.info("{}", notificationResponse.toString());
