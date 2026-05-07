@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productServiceImpl;
-
     @PostMapping
     public ProductAddProductResponseDTO saveProduct(@Valid @RequestBody ProductAddProductRequestDTO product) {
         log.info("POST /products called");
