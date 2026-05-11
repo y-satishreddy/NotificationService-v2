@@ -5,6 +5,9 @@ import com.skylimit.Skylimit.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +28,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
+    @Cacheable(value="products",key="#id")
     public ProductGetProductResponseDTO getProduct(@PathVariable Long id) {
         log.info("GET /products called with ", id);
         log.debug("Fetching product details for id: {}", id);
@@ -33,10 +37,12 @@ public class ProductController {
         return response;
     }
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductGetProductResponseDTO> partialUpdateProduct(
+    @CachePut(value="products", key="#id")
+    public ProductGetProductResponseDTO partialUpdateProduct(
             @PathVariable Long id,
             @RequestBody ProductPartialUpdate productPartialUpdateDTO
     ) {
+
         log.info("PATCH /products called with id = {}", id);
 
         ProductGetProductResponseDTO response =
@@ -44,7 +50,7 @@ public class ProductController {
 
         log.info("Product updated successfully with id = {}", id);
 
-        return ResponseEntity.ok(response);
+        return response;
     }
     @PutMapping("/{id}")
     public ResponseEntity<ProductGetProductResponseDTO> updateProduct(@PathVariable Long id, @RequestBody ProductUpdateRequest produtUpdateRequest){
@@ -53,6 +59,7 @@ public class ProductController {
         log.info("Product updated successfully with id = {}", id);
         return ResponseEntity.ok(response);
     }
+    @CacheEvict(value = "products", key="#id")
     @DeleteMapping("/{id}")
     public ResponseEntity<ProductGetProductResponseDTO> deleteProduct(@PathVariable Long id){
         log.info("DELETE /products api is called with id = {}", id);
